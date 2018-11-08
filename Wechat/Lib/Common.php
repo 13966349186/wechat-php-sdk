@@ -106,7 +106,9 @@ class Common
         $encryptStr = "";
         if ($_SERVER['REQUEST_METHOD'] == "POST") {
             $postStr = file_get_contents("php://input");
+            $disableEntities = libxml_disable_entity_loader(true);
             $array = (array)simplexml_load_string($postStr, 'SimpleXMLElement', LIBXML_NOCDATA);
+            libxml_disable_entity_loader($disableEntities);
             $this->encrypt_type = isset($_GET["encrypt_type"]) ? $_GET["encrypt_type"] : '';
             if ($this->encrypt_type == 'aes') {
                 $encryptStr = $array['Encrypt'];
@@ -126,6 +128,7 @@ class Common
             }
         } elseif (isset($_GET["echostr"])) {
             if ($this->checkSignature()) {
+                @ob_clean();
                 exit($_GET["echostr"]);
             }
             return false;
@@ -165,7 +168,7 @@ class Common
     public function getAccessToken($appid = '', $appsecret = '', $token = '')
     {
         if (!$appid || !$appsecret) {
-            list($appid, $appsecret) = [$this->appid, $this->appsecret];
+            list($appid, $appsecret) = array($this->appid, $this->appsecret);
         }
         if ($token) {
             return $this->access_token = $token;
